@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from . import models, auth
 from .database import engine, get_session
 from .auth_routes import router as auth_router
+from .admin_routes import router as admin_router
 
 # Create tables
 # Note: In production, you would use Alembic migrations, not create_all.
@@ -25,18 +26,8 @@ app.add_middleware(
 
 # Include routers
 app.include_router(auth_router)
-
+app.include_router(admin_router)
 
 @app.get("/health")
 def health_check():
     return {"status": "ok"}
-
-
-@app.get("/test-student")
-async def test_student(student: models.Student = Depends(auth.get_current_student)):
-    return student
-
-
-@app.get("/test-teacher")
-async def test_teacher(teacher: models.Teacher = Depends(auth.get_current_teacher)):
-    return teacher

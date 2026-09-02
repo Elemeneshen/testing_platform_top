@@ -1,7 +1,8 @@
 from pydantic import BaseModel, Field, validator
-from typing import Optional, List
+from typing import Optional, List, Union
 from datetime import datetime
 from enum import Enum as PyEnum
+from typing import Literal
 
 
 # Enums (matching SQLAlchemy models)
@@ -56,12 +57,6 @@ class StudentRead(StudentBase):
     created_at: datetime
 
 
-# Auth schemas
-class StudentLogin(BaseSchema):
-    full_name: str
-    access_code: str
-
-
 # Test schemas
 class TestBase(BaseSchema):
     title: str
@@ -79,20 +74,33 @@ class TestRead(TestBase):
 
 
 # Task schemas
-class TaskBase(BaseSchema):
+class TaskCreateBase(BaseSchema):
+    title: str
+    description: Optional[str] = None
+
+
+class AutoCheckTaskCreate(TaskCreateBase):
+    type: Literal["auto_check"]
+    checker_type: CheckerType
+    expected_value: str
+
+
+class CodeReviewTaskCreate(TaskCreateBase):
+    type: Literal["code_review"]
+    source_code: str
+    language: str
+
+
+TaskCreate = Union[AutoCheckTaskCreate, CodeReviewTaskCreate]
+
+
+class TaskRead(BaseSchema):
+    id: int
+    test_id: int
     title: str
     description: Optional[str] = None
     type: TaskType
     order_index: int
-
-
-class TaskCreate(TaskBase):
-    test_id: int
-
-
-class TaskRead(TaskBase):
-    id: int
-    test_id: int
     created_at: datetime
 
 
@@ -179,6 +187,12 @@ class GradeRead(GradeBase):
     graded_at: datetime
 
 
+# Auth schemas
+class StudentLogin(BaseSchema):
+    full_name: str
+    access_code: str
+
+
 # Combined schemas for nested relationships (for API responses)
 class TaskWithDetails(TaskRead):
     auto_check_task: Optional[AutoCheckTaskRead] = None
@@ -200,3 +214,13 @@ class StudentWithDetails(StudentRead):
     submissions: List[SubmissionRead] = []
     code_comments: List[CodeCommentRead] = []
     grades: List[GradeRead] = []
+
+
+# Admin response schemas
+class StudentProgress(BaseSchema):
+    student_id: int
+    full_name: str
+    group: str
+    submitted_tasks: int
+    total_tasks: int
+    pending_code_review: int
