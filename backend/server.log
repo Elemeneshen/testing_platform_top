@@ -1,0 +1,2 @@
+INFO:     Will watch for changes in these directories: ['G:\\work\\tests_server\\backend']
+ERROR:    [WinError 10013] Сделана попытка доступа к сокету методом, запрещенным правами доступа
