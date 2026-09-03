@@ -128,3 +128,16 @@ Verify /health.
 Read logs if verification fails.
 
 Never kill all python.exe processes just to restart the backend.
+
+A restart IS allowed when:
+- a dependency was installed or updated;
+- application code/configuration was changed and the running process cannot reload it;
+- the current server process is known to be broken.
+
+When restarting:
+- NEVER kill all python.exe processes;
+- identify the specific Uvicorn PID(s);
+- terminate only those processes;
+- start exactly one server;
+- verify /health;
+- inspect logs if startup fails.

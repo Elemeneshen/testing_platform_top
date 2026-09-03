@@ -1,2 +1,63 @@
-INFO:     Will watch for changes in these directories: ['G:\\work\\tests_server\\backend']
-ERROR:    [WinError 10013] Сделана попытка доступа к сокету методом, запрещенным правами доступа
+Form data requires "python-multipart" to be installed. 
+You can install "python-multipart" with: 
+
+pip install python-multipart
+
+Traceback (most recent call last):
+  File "C:\Users\Саня\AppData\Local\Programs\Python\Python310\lib\runpy.py", line 196, in _run_module_as_main
+    return _run_code(code, main_globals, None,
+  File "C:\Users\Саня\AppData\Local\Programs\Python\Python310\lib\runpy.py", line 86, in _run_code
+    exec(code, run_globals)
+  File "G:\work\tests_server\backend\venv\lib\site-packages\uvicorn\__main__.py", line 4, in <module>
+    uvicorn.main()
+  File "G:\work\tests_server\backend\venv\lib\site-packages\click\core.py", line 1631, in __call__
+    return self.main(*args, **kwargs)
+  File "G:\work\tests_server\backend\venv\lib\site-packages\click\core.py", line 1552, in main
+    rv = self.invoke(ctx)
+  File "G:\work\tests_server\backend\venv\lib\site-packages\click\core.py", line 1415, in invoke
+    return ctx.invoke(self.callback, **ctx.params)
+  File "G:\work\tests_server\backend\venv\lib\site-packages\click\core.py", line 910, in invoke
+    return callback(*args, **kwargs)
+  File "G:\work\tests_server\backend\venv\lib\site-packages\uvicorn\main.py", line 440, in main
+    run(
+  File "G:\work\tests_server\backend\venv\lib\site-packages\uvicorn\main.py", line 609, in run
+    config.load_app()
+  File "G:\work\tests_server\backend\venv\lib\site-packages\uvicorn\config.py", line 428, in load_app
+    return import_from_string(self.app)
+  File "G:\work\tests_server\backend\venv\lib\site-packages\uvicorn\importer.py", line 19, in import_from_string
+    module = importlib.import_module(module_str)
+  File "C:\Users\Саня\AppData\Local\Programs\Python\Python310\lib\importlib\__init__.py", line 126, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "<frozen importlib._bootstrap>", line 1050, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1027, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1006, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 688, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 883, in exec_module
+  File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
+  File "G:\work\tests_server\backend\app\main.py", line 6, in <module>
+    from .auth_routes import router as auth_router
+  File "G:\work\tests_server\backend\app\auth_routes.py", line 34, in <module>
+    async def teacher_login(
+  File "G:\work\tests_server\backend\venv\lib\site-packages\fastapi\routing.py", line 3004, in decorator
+    self.add_api_route(
+  File "G:\work\tests_server\backend\venv\lib\site-packages\fastapi\routing.py", line 2939, in add_api_route
+    route = route_class(
+  File "G:\work\tests_server\backend\venv\lib\site-packages\fastapi\routing.py", line 1193, in __init__
+    _populate_api_route_state(
+  File "G:\work\tests_server\backend\venv\lib\site-packages\fastapi\routing.py", line 1061, in _populate_api_route_state
+    ) = _build_dependant_with_parameterless_dependencies(
+  File "G:\work\tests_server\backend\venv\lib\site-packages\fastapi\routing.py", line 861, in _build_dependant_with_parameterless_dependencies
+    dependant = get_dependant(path=path, call=call, scope="function")
+  File "G:\work\tests_server\backend\venv\lib\site-packages\fastapi\dependencies\utils.py", line 322, in get_dependant
+    sub_dependant = get_dependant(
+  File "G:\work\tests_server\backend\venv\lib\site-packages\fastapi\dependencies\utils.py", line 296, in get_dependant
+    param_details = analyze_param(
+  File "G:\work\tests_server\backend\venv\lib\site-packages\fastapi\dependencies\utils.py", line 523, in analyze_param
+    ensure_multipart_is_installed()
+  File "G:\work\tests_server\backend\venv\lib\site-packages\fastapi\dependencies\utils.py", line 129, in ensure_multipart_is_installed
+    raise RuntimeError(multipart_not_installed_error) from None
+RuntimeError: Form data requires "python-multipart" to be installed. 
+You can install "python-multipart" with: 
+
+pip install python-multipart
+
