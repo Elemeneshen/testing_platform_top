@@ -1,0 +1,7 @@
+.student-group-editor { padding: 10px 18px 16px; border-top: 1px solid var(--border); }
+.student-group-editor__row { display: flex; align-items: center; justify-content: space-between; gap: 15px; padding: 9px 5px; border-bottom: 1px solid rgba(255,255,255,.04); }
+.student-group-editor__row:last-child { border-bottom: 0; }
+.student-group-editor__row b, .student-group-editor__row small { display: block; }
+.student-group-editor__row b { color: #dce4ee; font-size: 11px; }
+.student-group-editor__row small { color: var(--text-soft); font-size: 9px; }
+.student-group-editor__row select { min-width: 150px; padding: 7px 9px; color: var(--text-h); background: #0d131b; border: 1px solid #293544; border-radius: 8px; }

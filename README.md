@@ -43,6 +43,20 @@ The frontend will be available at `http://localhost:5173`
    - Frontend: `http://localhost:5173`
    - PostgreSQL: `localhost:5432`
 
+## First Run (Create Admin Teacher)
+
+After starting the containers with `docker compose up -d`, you need to create the first teacher (admin) account to access the admin panel.
+
+Run the following command inside the backend container:
+
+```bash
+docker compose exec backend python -m app.scripts.create_teacher --email admin@example.com --password your-secure-password
+```
+
+Replace `admin@example.com` and `your-secure-password` with your desired credentials.
+
+The script will check if a teacher with that email already exists and avoid creating duplicates.
+
 ## Environment Variables
 
 See `.env.example` for required variables:

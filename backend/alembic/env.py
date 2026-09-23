@@ -3,6 +3,7 @@ from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 from alembic import context
 from urllib.parse import urlparse, urlunparse
+import os
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -26,7 +27,7 @@ target_metadata = Base.metadata
 
 def get_url() -> str:
     """Get the database URL, converting asyncpg to synchronous for Alembic if needed."""
-    url = config.get_main_option("sqlalchemy.url")
+    url = os.getenv("DATABASE_URL", config.get_main_option("sqlalchemy.url"))
     # If using asyncpg driver, convert to regular postgresql for Alembic (sync)
     if url.startswith("postgresql+asyncpg://"):
         url = url.replace("postgresql+asyncpg://", "postgresql://")

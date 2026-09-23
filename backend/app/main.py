@@ -5,6 +5,8 @@ from . import models, auth
 from .database import engine, get_session
 from .auth_routes import router as auth_router
 from .admin_routes import router as admin_router
+from .student_routes import router as student_router
+from .task_comments_routes import router as task_comments_router
 
 # Create tables
 # Note: In production, you would use Alembic migrations, not create_all.
@@ -27,6 +29,8 @@ app.add_middleware(
 # Include routers
 app.include_router(auth_router)
 app.include_router(admin_router)
+app.include_router(student_router)
+app.include_router(task_comments_router)
 
 @app.get("/health")
 def health_check():
