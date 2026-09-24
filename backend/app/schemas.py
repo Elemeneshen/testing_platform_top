@@ -62,6 +62,7 @@ class StudentRegister(BaseSchema):
     username: str = Field(..., min_length=3, max_length=40, pattern=r"^[a-zA-Z0-9_.-]+$")
     password: str = Field(..., min_length=8, max_length=128)
     full_name: str = Field(..., min_length=2, max_length=120)
+    registration_code: str = Field(..., min_length=6, max_length=12, pattern=r"^[a-zA-Z0-9]+$")
 
 
 class StudentProfile(BaseSchema):
@@ -91,6 +92,10 @@ class GroupRead(BaseSchema):
     teacher_email: Optional[str] = None
     student_count: int = 0
     created_at: datetime
+
+
+class RegistrationCodeRead(BaseSchema):
+    registration_code: str
 
 
 # Test schemas

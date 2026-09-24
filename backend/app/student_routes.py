@@ -38,6 +38,7 @@ async def list_available_groups(
         select(models.StudentGroup, models.Teacher.email)
         .options(selectinload(models.StudentGroup.students))
         .join(models.Teacher, models.StudentGroup.teacher_id == models.Teacher.id)
+        .where(models.StudentGroup.teacher_id == student.registration_teacher_id)
         .order_by(models.StudentGroup.name)
     )
     return [schemas.GroupRead(
@@ -75,7 +76,10 @@ async def select_student_group(
 ):
     if student.group_id is not None:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only a teacher can change an existing group assignment")
-    result = await db.execute(select(models.StudentGroup).where(models.StudentGroup.id == payload.group_id))
+    result = await db.execute(select(models.StudentGroup).where(
+        models.StudentGroup.id == payload.group_id,
+        models.StudentGroup.teacher_id == student.registration_teacher_id,
+    ))
     group = result.scalars().first()
     if not group:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Group not found")

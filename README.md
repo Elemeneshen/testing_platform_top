@@ -60,6 +60,13 @@ instances, while PostgreSQL stores both the current source text and the durable
 Yjs document state. Browser connections are authenticated with the existing JWT
 cookie and authorized for the selected task and student on the realtime server.
 
+## Closed student registration
+
+Every teacher has a private registration code in the dashboard. Students must
+enter that code when creating an account and can then join only groups owned by
+that teacher. Rotating the code invalidates the previous one immediately and
+does not affect accounts that are already registered.
+
 ## First Run (Create Admin Teacher)
 
 After starting the containers with `docker compose up -d`, you need to create the first teacher (admin) account to access the admin panel.

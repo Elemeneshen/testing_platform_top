@@ -10,6 +10,8 @@ const TeacherDashboard: React.FC = () => {
   const [tests, setTests] = useState<any[]>([]);
   const [groups, setGroups] = useState<any[]>([]);
   const [students, setStudents] = useState<any[]>([]);
+  const [registrationCode, setRegistrationCode] = useState('');
+  const [codeCopied, setCodeCopied] = useState(false);
   const [newGroupName, setNewGroupName] = useState('');
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -26,10 +28,11 @@ const TeacherDashboard: React.FC = () => {
       try {
         setLoading(true);
         setError(null);
-        const [testsData, groupsData, studentsData] = await Promise.all([apiFetch('/admin/tasks'), apiFetch('/admin/groups'), apiFetch('/admin/students')]);
+        const [testsData, groupsData, studentsData, codeData] = await Promise.all([apiFetch('/admin/tasks'), apiFetch('/admin/groups'), apiFetch('/admin/students'), apiFetch('/admin/registration-code')]);
         setTests(testsData);
         setGroups(groupsData);
         setStudents(studentsData);
+        setRegistrationCode(codeData.registration_code);
       } catch (err: any) {
         setError(err.message || 'Failed to load tests');
       } finally {
@@ -71,6 +74,19 @@ const TeacherDashboard: React.FC = () => {
       await refreshGroups();
     } catch (err: any) { setError(err.message || 'Failed to change student group'); }
   };
+  const copyRegistrationCode = async () => {
+    await navigator.clipboard.writeText(registrationCode);
+    setCodeCopied(true);
+    window.setTimeout(() => setCodeCopied(false), 1500);
+  };
+  const rotateRegistrationCode = async () => {
+    if (!window.confirm('Generate a new registration code? The current code will stop working immediately.')) return;
+    try {
+      const data = await apiFetch('/admin/registration-code/rotate', { method: 'POST' });
+      setRegistrationCode(data.registration_code);
+      setCodeCopied(false);
+    } catch (err: any) { setError(err.message || 'Failed to update registration code'); }
+  };
 
   if (loading) return <div className="loading-state">Loading workspace…</div>;
   if (error) return <div className="error">{error}</div>;
@@ -84,9 +100,14 @@ const TeacherDashboard: React.FC = () => {
 
       <div className="dashboard-stats"><div className="stat-card"><span>Total tasks</span><b>{totalTasks}</b></div><div className="stat-card"><span>Published</span><b>{tests.filter((task) => task.is_visible).length}</b></div><div className="stat-card"><span>Assigned seats</span><b>{tests.reduce((count, task) => count + (task.assigned_student_count ?? 0), 0)}</b></div></div>
 
+      <section className="registration-code-card panel">
+        <div><span className="eyebrow">Closed registration</span><h3>Student registration code</h3><p>Share this code during the lecture. New students will be linked to your groups.</p></div>
+        <div className="registration-code-card__controls"><button type="button" className="registration-code-card__code" onClick={copyRegistrationCode} title="Copy registration code">{registrationCode}</button><button type="button" className="button-secondary" onClick={copyRegistrationCode}>{codeCopied ? 'Copied' : 'Copy'}</button><button type="button" className="button-ghost" onClick={rotateRegistrationCode}>Change code</button></div>
+      </section>
+
       <section className="group-manager panel">
         <header><div><span className="eyebrow">Class management</span><h3>Student groups</h3></div><form onSubmit={createGroup}><input value={newGroupName} onChange={(event) => setNewGroupName(event.target.value)} placeholder="New group name" maxLength={80} /><button className="button" type="submit" disabled={!newGroupName.trim()}>＋ Add group</button></form></header>
-        {groups.length === 0 ? <div className="test-group__empty">No groups yet. Create one so students can join it after registration.</div> : <><div className="group-manager__grid">{groups.map((group) => <article className="group-card" key={group.id}><span className="group-card__mark">{group.name.slice(0, 2).toUpperCase()}</span><div><b>{group.name}</b><small>{group.student_count} students</small></div><div className="group-card__actions"><button type="button" onClick={() => renameGroup(group)}>Rename</button><button type="button" className="danger-link" onClick={() => deleteGroup(group)}>Delete</button></div></article>)}</div>{students.length > 0 && <div className="student-group-editor"><span className="assignment-picker__label">Student assignments</span>{students.map((student) => <div className="student-group-editor__row" key={student.id}><div><b>{student.full_name}</b><small>@{student.username}</small></div><select value={student.group_id} onChange={(event) => changeStudentGroup(student.id, Number(event.target.value))}>{groups.map((group) => <option value={group.id} key={group.id}>{group.name}</option>)}</select></div>)}</div>}</>}
+        {groups.length === 0 ? <div className="test-group__empty">No groups yet. Create one so students can join it after registration.</div> : <><div className="group-manager__grid">{groups.map((group) => <article className="group-card" key={group.id}><span className="group-card__mark">{group.name.slice(0, 2).toUpperCase()}</span><div><b>{group.name}</b><small>{group.student_count} students</small></div><div className="group-card__actions"><button type="button" onClick={() => renameGroup(group)}>Rename</button><button type="button" className="danger-link" onClick={() => deleteGroup(group)}>Delete</button></div></article>)}</div>{students.length > 0 && <div className="student-group-editor"><span className="assignment-picker__label">Student assignments</span>{students.map((student) => <div className="student-group-editor__row" key={student.id}><div><b>{student.full_name}</b><small>@{student.username}{student.group_name ? ` · ${student.group_name}` : ' · Waiting for group'}</small></div><select value={student.group_id ?? ''} onChange={(event) => changeStudentGroup(student.id, Number(event.target.value))}><option value="" disabled>Select group</option>{groups.map((group) => <option value={group.id} key={group.id}>{group.name}</option>)}</select></div>)}</div>}</>}
       </section>
 
       {tests.length === 0 ? (

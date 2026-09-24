@@ -38,6 +38,11 @@ async def student_register(
     db: AsyncSession = Depends(get_session),
 ):
     username = payload.username.strip().lower()
+    registration_code = payload.registration_code.strip().upper()
+    teacher_result = await db.execute(select(models.Teacher).where(models.Teacher.registration_code == registration_code))
+    teacher = teacher_result.scalars().first()
+    if not teacher:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Invalid registration code")
     existing = await db.execute(select(models.Student.id).where(models.Student.username == username))
     if existing.scalar_one_or_none() is not None:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Username is already taken")
@@ -46,6 +51,7 @@ async def student_register(
         password_hash=auth.get_password_hash(payload.password),
         full_name=payload.full_name.strip(),
         group_name="unassigned",
+        registration_teacher_id=teacher.id,
     )
     db.add(student)
     await db.commit()

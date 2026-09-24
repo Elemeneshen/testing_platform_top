@@ -6,6 +6,7 @@ from sqlalchemy.orm import selectinload
 from typing import List, Optional
 import random
 import string
+import secrets
 
 logger = logging.getLogger(__name__)
 
@@ -21,8 +22,31 @@ def generate_access_code(length: int = 8) -> str:
     return ''.join(random.choice(alphabet) for _ in range(length))
 
 
+async def generate_unique_registration_code(db: AsyncSession, length: int = 8) -> str:
+    alphabet = string.ascii_uppercase + string.digits
+    for _ in range(20):
+        code = ''.join(secrets.choice(alphabet) for _ in range(length))
+        exists = await db.execute(select(models.Teacher.id).where(models.Teacher.registration_code == code))
+        if exists.scalar_one_or_none() is None:
+            return code
+    raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Could not generate a unique registration code")
+
+
 def group_to_schema(group: models.StudentGroup, teacher_email: str) -> schemas.GroupRead:
     return schemas.GroupRead(id=group.id, name=group.name, teacher_id=group.teacher_id, teacher_email=teacher_email, student_count=len(group.students), created_at=group.created_at)
+
+
+@router.get("/registration-code", response_model=schemas.RegistrationCodeRead)
+async def get_registration_code(teacher: models.Teacher = Depends(auth.get_current_teacher)):
+    return schemas.RegistrationCodeRead(registration_code=teacher.registration_code)
+
+
+@router.post("/registration-code/rotate", response_model=schemas.RegistrationCodeRead)
+async def rotate_registration_code(teacher: models.Teacher = Depends(auth.get_current_teacher), db: AsyncSession = Depends(get_session)):
+    teacher.registration_code = await generate_unique_registration_code(db)
+    await db.commit()
+    await db.refresh(teacher)
+    return schemas.RegistrationCodeRead(registration_code=teacher.registration_code)
 
 
 @router.get("/groups", response_model=List[schemas.GroupRead])
@@ -85,16 +109,20 @@ async def assignment_options(teacher: models.Teacher = Depends(auth.get_current_
 async def list_teacher_students(teacher: models.Teacher = Depends(auth.get_current_teacher), db: AsyncSession = Depends(get_session)):
     result = await db.execute(
         select(models.Student, models.StudentGroup)
-        .join(models.StudentGroup, models.Student.group_id == models.StudentGroup.id)
-        .where(models.StudentGroup.teacher_id == teacher.id)
+        .outerjoin(models.StudentGroup, models.Student.group_id == models.StudentGroup.id)
+        .where((models.Student.registration_teacher_id == teacher.id) | (models.StudentGroup.teacher_id == teacher.id))
         .order_by(models.Student.full_name)
     )
-    return [{"id": student.id, "full_name": student.full_name, "username": student.username, "group_id": group.id, "group_name": group.name} for student, group in result.all()]
+    return [{"id": student.id, "full_name": student.full_name, "username": student.username, "group_id": group.id if group else None, "group_name": group.name if group else None} for student, group in result.all()]
 
 
 @router.patch("/students/{student_id}/group", response_model=schemas.StudentProfile)
 async def change_student_group(student_id: int, payload: schemas.StudentGroupSelect, teacher: models.Teacher = Depends(auth.get_current_teacher), db: AsyncSession = Depends(get_session)):
-    student_result = await db.execute(select(models.Student).join(models.StudentGroup).where(models.Student.id == student_id, models.StudentGroup.teacher_id == teacher.id))
+    student_result = await db.execute(
+        select(models.Student)
+        .outerjoin(models.StudentGroup, models.Student.group_id == models.StudentGroup.id)
+        .where(models.Student.id == student_id, (models.Student.registration_teacher_id == teacher.id) | (models.StudentGroup.teacher_id == teacher.id))
+    )
     student = student_result.scalars().first()
     group_result = await db.execute(select(models.StudentGroup).where(models.StudentGroup.id == payload.group_id, models.StudentGroup.teacher_id == teacher.id))
     group = group_result.scalars().first()

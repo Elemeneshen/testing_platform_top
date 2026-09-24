@@ -16,6 +16,13 @@ from sqlalchemy.ext.asyncio import AsyncAttrs
 from sqlalchemy.orm import DeclarativeBase, relationship
 from datetime import datetime
 from enum import Enum as PyEnum
+import secrets
+import string
+
+
+def new_registration_code() -> str:
+    alphabet = string.ascii_uppercase + string.digits
+    return ''.join(secrets.choice(alphabet) for _ in range(8))
 
 
 class Base(AsyncAttrs, DeclarativeBase):
@@ -66,6 +73,7 @@ class Teacher(Base):
     id = Column(Integer, primary_key=True, index=True)
     email = Column(String, unique=True, index=True, nullable=False)
     password_hash = Column(String, nullable=False)
+    registration_code = Column(String(12), unique=True, index=True, nullable=False, default=new_registration_code)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 
     # Relationships
@@ -85,6 +93,7 @@ class Student(Base):
     password_hash = Column(String, nullable=True)
     group_name = Column("group", String, nullable=False, default="unassigned")
     group_id = Column(Integer, ForeignKey("student_groups.id", ondelete="SET NULL"), nullable=True)
+    registration_teacher_id = Column(Integer, ForeignKey("teachers.id", ondelete="SET NULL"), nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 
     # Relationships
