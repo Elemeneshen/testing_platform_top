@@ -8,6 +8,7 @@ from sqlalchemy import (
     Enum,
     Boolean,
     Float,
+    LargeBinary,
     Table,
     UniqueConstraint,
 )
@@ -185,6 +186,7 @@ class StudentCodeSession(Base):
     task_id = Column(Integer, ForeignKey("tasks.id", ondelete="CASCADE"), nullable=False)
     student_id = Column(Integer, ForeignKey("students.id", ondelete="CASCADE"), nullable=False)
     source_code = Column(Text, nullable=False)
+    ydoc_state = Column(LargeBinary, nullable=True)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
     task = relationship("Task", back_populates="code_sessions")

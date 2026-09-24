@@ -6,12 +6,14 @@ A web platform for student testing with FastAPI backend and React frontend.
 
 - `/backend` - FastAPI application
 - `/frontend` - Vite + React + TypeScript application
+- `/realtime` - Hocuspocus/Yjs collaboration server
 
 ## Prerequisites
 
 - Python 3.12+
 - Node.js 20.19.0+ (or >=22.12.0)
 - PostgreSQL 15+
+- Redis 7+
 - Docker and Docker Compose (optional, for containerized deployment)
 
 ## Backend Setup
@@ -42,6 +44,21 @@ The frontend will be available at `http://localhost:5173`
    - Backend API: `http://localhost:8000`
    - Frontend: `http://localhost:5173`
    - PostgreSQL: `localhost:5432`
+   - Realtime WebSocket: `ws://localhost:1234`
+
+Apply database migrations after pulling a version that changes the schema:
+
+```bash
+docker compose exec backend alembic upgrade head
+```
+
+## Realtime collaboration
+
+Code-review sessions use Yjs and Hocuspocus for conflict-free simultaneous
+editing. Redis distributes document and presence updates between realtime
+instances, while PostgreSQL stores both the current source text and the durable
+Yjs document state. Browser connections are authenticated with the existing JWT
+cookie and authorized for the selected task and student on the realtime server.
 
 ## First Run (Create Admin Teacher)
 

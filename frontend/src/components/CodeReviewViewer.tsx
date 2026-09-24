@@ -11,6 +11,9 @@ import { javascript } from '@codemirror/lang-javascript';
 import { html } from '@codemirror/lang-html';
 import { css } from '@codemirror/lang-css';
 import { oneDark } from '@codemirror/theme-one-dark';
+import { HocuspocusProvider } from '@hocuspocus/provider';
+import * as Y from 'yjs';
+import { yCollab } from 'y-codemirror.next';
 import './CodeReviewViewer.css';
 
 interface Comment {
@@ -28,6 +31,11 @@ interface CodeReviewViewerProps {
   onAddComment: (lineNumber: number, text: string) => void | Promise<void>;
   readOnly?: boolean;
   onCodeChange?: (code: string) => void;
+  collaboration?: {
+    room: string;
+    user: { name: string; color: string; colorLight: string };
+    onStatus?: (status: 'connecting' | 'connected' | 'disconnected') => void;
+  };
   style?: React.CSSProperties;
 }
 
@@ -57,15 +65,18 @@ const Icon = ({ name }: { name: 'code' | 'copy' | 'check' | 'message' | 'send' |
   return <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">{paths[name]}</svg>;
 };
 
-const CodeReviewViewer: React.FC<CodeReviewViewerProps> = ({ code, language, comments, enableCommenting, onCommentLineChange, onAddComment, readOnly = true, onCodeChange, style }) => {
+const CodeReviewViewer: React.FC<CodeReviewViewerProps> = ({ code, language, comments, enableCommenting, onCommentLineChange, onAddComment, readOnly = true, onCodeChange, collaboration, style }) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const viewRef = useRef<EditorView | null>(null);
   const onCodeChangeRef = useRef(onCodeChange);
   const applyingExternalCodeRef = useRef(false);
+  const collaborationRef = useRef<{ document: Y.Doc; provider: HocuspocusProvider; text: Y.Text } | null>(null);
   const [selectedLine, setSelectedLine] = useState(1);
   const [draft, setDraft] = useState('');
   const [copied, setCopied] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [connectionStatus, setConnectionStatus] = useState<'local' | 'connecting' | 'connected' | 'disconnected'>(collaboration ? 'connecting' : 'local');
+  const [participants, setParticipants] = useState(collaboration ? 1 : 0);
   onCodeChangeRef.current = onCodeChange;
 
   const lineCount = useMemo(() => Math.max(1, code.split('\n').length), [code]);
@@ -83,19 +94,52 @@ const CodeReviewViewer: React.FC<CodeReviewViewerProps> = ({ code, language, com
     ];
     const languagePack = getLanguagePack(language);
     if (languagePack) extensions.push(languagePack);
+    const shared = collaborationRef.current;
+    if (shared?.provider.awareness) extensions.push(yCollab(shared.text, shared.provider.awareness));
     if (readOnly) extensions.push(EditorState.readOnly.of(true));
     return extensions;
   };
 
   useEffect(() => {
     if (!containerRef.current) return;
-    const view = new EditorView({ state: EditorState.create({ doc: code, extensions: buildExtensions() }), parent: containerRef.current });
+    let initialCode = code;
+    if (collaboration) {
+      const document = new Y.Doc();
+      const websocketProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const provider = new HocuspocusProvider({
+        url: `${websocketProtocol}//${window.location.host}/collab`,
+        name: collaboration.room,
+        document,
+        flushDelay: 40,
+        onStatus: ({ status }) => {
+          setConnectionStatus(status);
+          collaboration.onStatus?.(status);
+        },
+        onAwarenessChange: ({ states }) => setParticipants(states.length),
+        onAuthenticationFailed: () => {
+          setConnectionStatus('disconnected');
+          collaboration.onStatus?.('disconnected');
+        },
+      });
+      provider.setAwarenessField('user', collaboration.user);
+      const text = document.getText('code');
+      collaborationRef.current = { document, provider, text };
+      initialCode = text.toString();
+    }
+    const view = new EditorView({ state: EditorState.create({ doc: initialCode, extensions: buildExtensions() }), parent: containerRef.current });
     viewRef.current = view;
-    return () => { view.destroy(); viewRef.current = null; };
+    return () => {
+      view.destroy();
+      viewRef.current = null;
+      collaborationRef.current?.provider.destroy();
+      collaborationRef.current?.document.destroy();
+      collaborationRef.current = null;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
+    if (collaborationRef.current) return;
     const view = viewRef.current;
     if (!view) return;
     view.setState(EditorState.create({ doc: view.state.doc, extensions: buildExtensions() }));
@@ -103,6 +147,10 @@ const CodeReviewViewer: React.FC<CodeReviewViewerProps> = ({ code, language, com
   }, [language, readOnly]);
 
   useEffect(() => {
+    // In collaborative mode Y.Text is the only source of truth. Applying the
+    // periodically fetched source_code as a CodeMirror transaction would send
+    // it back to Yjs as a concurrent edit and can duplicate the document.
+    if (collaborationRef.current) return;
     const view = viewRef.current;
     if (!view) return;
     const currentCode = view.state.doc.toString();
@@ -148,7 +196,7 @@ const CodeReviewViewer: React.FC<CodeReviewViewerProps> = ({ code, language, com
   return (
     <section className="live-code" style={style} aria-label="Live code review">
       <header className="live-code__topbar">
-        <div className="live-code__brand"><span className="live-code__logo"><Icon name="code" /></span><span>Livecoding</span><span className="live-code__status"><i /> Session active</span></div>
+        <div className="live-code__brand"><span className="live-code__logo"><Icon name="code" /></span><span>Livecoding</span><span className={`live-code__status live-code__status--${connectionStatus}`}><i />{connectionStatus === 'connected' ? `Live · ${participants} online` : connectionStatus === 'connecting' ? 'Connecting…' : connectionStatus === 'disconnected' ? 'Offline' : 'Local session'}</span></div>
         <div className="live-code__actions"><span className="live-code__language">{languageLabels[language ?? ''] ?? 'Plain text'}</span><button type="button" className="live-code__icon-button" onClick={handleCopy} title="Copy code"><Icon name={copied ? 'check' : 'copy'} /><span>{copied ? 'Copied' : 'Copy'}</span></button></div>
       </header>
 

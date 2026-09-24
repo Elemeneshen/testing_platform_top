@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { apiFetch } from '../utils/api';
@@ -26,8 +26,6 @@ const TeacherTaskReview: React.FC = () => {
   const [reviewCode, setReviewCode] = useState('');
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'error'>('saved');
   const [students, setStudents] = useState<ReviewStudent[]>([]);
-  const saveTimerRef = useRef<number | null>(null);
-  const savingRef = useRef(false);
 
   useEffect(() => {
     const fetchStudents = async () => {
@@ -54,7 +52,7 @@ const TeacherTaskReview: React.FC = () => {
         setError(null);
         const data = await apiFetch(`/admin/tasks/${taskId}/students/${studentId}/review`);
         setReview(data);
-        if (!savingRef.current) setReviewCode(data.source_code ?? '');
+        setReviewCode(data.source_code ?? '');
       } catch (err: any) {
         setError(err.message || 'Failed to load task review');
       } finally {
@@ -64,43 +62,11 @@ const TeacherTaskReview: React.FC = () => {
 
     fetchReview();
     const interval = window.setInterval(() => fetchReview(false), 3000);
-    return () => { window.clearInterval(interval); if (saveTimerRef.current !== null) window.clearTimeout(saveTimerRef.current); };
+    return () => window.clearInterval(interval);
   }, [navigate, role, taskId, studentId]);
 
-  const handleCodeChange = (sourceCode: string) => {
-    setReviewCode(sourceCode);
-    setSaveStatus('saving');
-    savingRef.current = true;
-    if (saveTimerRef.current !== null) window.clearTimeout(saveTimerRef.current);
-    saveTimerRef.current = window.setTimeout(async () => {
-      try {
-        await apiFetch(`/admin/tasks/${taskId}/students/${studentId}/code`, { method: 'PUT', body: JSON.stringify({ source_code: sourceCode }) });
-        setSaveStatus('saved');
-      } catch {
-        setSaveStatus('error');
-      } finally {
-        savingRef.current = false;
-      }
-    }, 700);
-  };
-
-  const switchStudent = async (nextStudentId: number) => {
+  const switchStudent = (nextStudentId: number) => {
     if (String(nextStudentId) === studentId) return;
-    if (saveTimerRef.current !== null && savingRef.current) {
-      window.clearTimeout(saveTimerRef.current);
-      saveTimerRef.current = null;
-      try {
-        await apiFetch(`/admin/tasks/${taskId}/students/${studentId}/code`, {
-          method: 'PUT',
-          body: JSON.stringify({ source_code: reviewCode })
-        });
-      } catch {
-        setSaveStatus('error');
-        return;
-      } finally {
-        savingRef.current = false;
-      }
-    }
     navigate(`/teacher/task/${taskId}/review/${nextStudentId}`);
   };
 
@@ -163,6 +129,7 @@ const TeacherTaskReview: React.FC = () => {
         <div className="source-code-section">
           <div className="code-review-heading"><h3>Student code</h3><span className={`save-indicator save-indicator--${saveStatus}`}>{saveStatus === 'saving' ? 'Saving…' : saveStatus === 'error' ? 'Save failed' : 'All changes saved'}</span></div>
           <CodeReviewViewer
+            key={`task-${taskId}-student-${studentId}`}
             code={reviewCode}
             language={review.language}
             comments={review.comments.map((c: any) => ({
@@ -174,7 +141,11 @@ const TeacherTaskReview: React.FC = () => {
             onCommentLineChange={setNewCommentLine}
             onAddComment={handleAddComment}
             readOnly={false}
-            onCodeChange={handleCodeChange}
+            collaboration={{
+              room: `task-${taskId}-student-${studentId}`,
+              user: { name: 'Teacher', color: '#a78bfa', colorLight: '#a78bfa33' },
+              onStatus: (status) => setSaveStatus(status === 'connected' ? 'saved' : status === 'connecting' ? 'saving' : 'error')
+            }}
           />
         </div>
       )}

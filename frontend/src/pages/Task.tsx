@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { apiFetch } from '../utils/api';
@@ -18,8 +18,6 @@ const Task: React.FC = () => {
   const [newCommentLine, setNewCommentLine] = useState<number>(1);
   const [workingCode, setWorkingCode] = useState('');
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'error'>('saved');
-  const saveTimerRef = useRef<number | null>(null);
-  const savingRef = useRef(false);
 
   useEffect(() => {
     // Ensure the user is a student
@@ -39,8 +37,7 @@ const Task: React.FC = () => {
         const data = await apiFetch(`/tasks/${id}`);
         if (!active) return;
         setTask(data);
-        // Do not replace text while the student's local changes are waiting to be saved.
-        if (!savingRef.current) setWorkingCode(data.code_review_task?.source_code || '');
+        setWorkingCode(data.code_review_task?.source_code || '');
       } catch (err: any) {
         if (initial && active) setError(err.message || 'Failed to load task');
       } finally {
@@ -54,26 +51,8 @@ const Task: React.FC = () => {
     return () => {
       active = false;
       window.clearInterval(syncTimer);
-      if (saveTimerRef.current !== null) window.clearTimeout(saveTimerRef.current);
     };
   }, [navigate, role, id]);
-
-  const handleCodeChange = (sourceCode: string) => {
-    setWorkingCode(sourceCode);
-    setSaveStatus('saving');
-    savingRef.current = true;
-    if (saveTimerRef.current !== null) window.clearTimeout(saveTimerRef.current);
-    saveTimerRef.current = window.setTimeout(async () => {
-      try {
-        await apiFetch(`/tasks/${id}/code`, { method: 'PUT', body: JSON.stringify({ source_code: sourceCode }) });
-        setSaveStatus('saved');
-      } catch {
-        setSaveStatus('error');
-      } finally {
-        savingRef.current = false;
-      }
-    }, 700);
-  };
 
   const handleSubmit = async () => {
     if (!task || task.type !== 'auto_check') return;
@@ -151,6 +130,7 @@ const Task: React.FC = () => {
         <div className="code-review-task">
           <div className="code-review-heading"><h3>{task.code_review_task?.student_mode === 'live' ? 'Live coding workspace' : 'Code to review'}</h3>{task.code_review_task?.student_mode === 'live' && <span className={`save-indicator save-indicator--${saveStatus}`}>{saveStatus === 'saving' ? 'Saving…' : saveStatus === 'error' ? 'Save failed' : 'All changes saved'}</span>}</div>
           <CodeReviewViewer
+            key={`task-${id}`}
             code={workingCode}
             language={task.code_review_task?.language || null}
             comments={task.code_comments?.map((comment: any) => ({
@@ -162,7 +142,11 @@ const Task: React.FC = () => {
             onCommentLineChange={setNewCommentLine}
             onAddComment={handleAddComment}
             readOnly={task.code_review_task?.student_mode !== 'live'}
-            onCodeChange={task.code_review_task?.student_mode === 'live' ? handleCodeChange : undefined}
+            collaboration={{
+              room: `task-${id}-student-${task.student_id}`,
+              user: { name: 'Student', color: '#22d3ee', colorLight: '#22d3ee33' },
+              onStatus: (status) => setSaveStatus(status === 'connected' ? 'saved' : status === 'connecting' ? 'saving' : 'error')
+            }}
           />
 
         </div>

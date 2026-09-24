@@ -30,6 +30,12 @@ export default defineConfig({
         changeOrigin: true,
         secure: false,
       },
+      '/collab': {
+        target: 'ws://realtime:1234',
+        ws: true,
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/collab/, ''),
+      },
     },
   },
 })

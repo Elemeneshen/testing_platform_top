@@ -1,0 +1,17 @@
+{
+  "name": "testing-platform-realtime",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js"
+  },
+  "dependencies": {
+    "@hocuspocus/extension-redis": "^4.7.0",
+    "@hocuspocus/server": "^4.7.0",
+    "jsonwebtoken": "^9.0.2",
+    "pg": "^8.16.3",
+    "yjs": "^13.6.33"
+  }
+}

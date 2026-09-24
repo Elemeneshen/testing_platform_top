@@ -294,6 +294,7 @@ class TeacherLogin(BaseSchema):
 
 # Combined schemas for nested relationships (for API responses)
 class TaskWithDetails(TaskRead):
+    student_id: Optional[int] = None
     auto_check_task: Optional[AutoCheckTaskRead] = None
     code_review_task: Optional[CodeReviewTaskRead] = None
     submissions: List[SubmissionRead] = []

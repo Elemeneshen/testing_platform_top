@@ -1,6 +1,12 @@
-version: '3.8'
-
 services:
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+
   postgres:
     image: postgres:15
     container_name: postgres
@@ -45,6 +51,27 @@ services:
       - "5173:5173"
     depends_on:
       - backend
+      - realtime
+
+  realtime:
+    build: ./realtime
+    container_name: realtime
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REALTIME_PORT: 1234
+    volumes:
+      - ./realtime/src:/app/src:cached
+    command: npm run dev
+    ports:
+      - "1234:1234"
+    depends_on:
+      - postgres
+      - redis
 
 volumes:
   postgres_data:
+  redis_data:

@@ -259,6 +259,7 @@ async def get_task(
 
     task_detail = schemas.TaskWithDetails(
         id=task.id,
+        student_id=student.id,
         test_id=task.test_id,
         created_by=task.created_by,
         title=task.title,
