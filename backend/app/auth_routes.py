@@ -84,7 +84,7 @@ async def teacher_login(
 
 @router.post("/logout")
 async def logout(response: Response):
-    response.delete_cookie(key="token", path="/", domain="localhost")
+    response.delete_cookie(key="token", path="/", domain=auth.COOKIE_DOMAIN)
     return {"message": "Logged out"}
 
 

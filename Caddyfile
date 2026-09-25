@@ -1,0 +1,35 @@
+siberianlivecoding.ru {
+    encode zstd gzip
+
+    handle_path /collab* {
+        reverse_proxy realtime:1234
+    }
+
+    handle /auth/* {
+        reverse_proxy backend:8000
+    }
+
+    handle /admin/* {
+        reverse_proxy backend:8000
+    }
+
+    handle /tasks/* {
+        reverse_proxy backend:8000
+    }
+
+    handle /tests/* {
+        reverse_proxy backend:8000
+    }
+
+    handle /student/* {
+        reverse_proxy backend:8000
+    }
+
+    handle /health {
+        reverse_proxy backend:8000
+    }
+
+    handle {
+        reverse_proxy frontend:80
+    }
+}

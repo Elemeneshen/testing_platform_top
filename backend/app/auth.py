@@ -21,6 +21,8 @@ from .database import get_session
 SECRET_KEY = os.getenv("JWT_SECRET", "your-super-secret-jwt-key-change-this-in-production")
 ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
+COOKIE_SECURE = os.getenv("COOKIE_SECURE", "false").lower() in {"1", "true", "yes"}
+COOKIE_DOMAIN = os.getenv("COOKIE_DOMAIN") or None
 
 
 def verify_password(plain_password, hashed_password):
@@ -94,10 +96,10 @@ def set_jwt_cookie(response: Response, token: str):
         value=token,
         httponly=True,
         max_age=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
-        # secure=True,  # in production
+        secure=COOKIE_SECURE,
         samesite="lax",
         path="/",
-        domain="localhost",
+        domain=COOKIE_DOMAIN,
     )
 
 
