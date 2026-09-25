@@ -26,3 +26,4 @@ runtime/
 device-access/authority/
 device-access/issued/
 device-access/requests/
+device-access/usb/

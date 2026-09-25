@@ -15,11 +15,6 @@ ensure_directories
 mv "$certificate" "$REVOKED_DIR/$device_name.crt"
 rm -f "$ISSUED_DIR/$device_name.cer"
 
-if "$(dirname "$0")/rebuild-trust.sh"; then
-  reload_caddy
-else
-  rm -f "$RUNTIME_DIR/mtls.caddy"
-  reload_caddy
-  echo "Last device revoked; enforcement was disabled to avoid an invalid Caddy configuration." >&2
-fi
+"$(dirname "$0")/rebuild-trust.sh"
+reload_caddy
 echo "Revoked: $device_name"

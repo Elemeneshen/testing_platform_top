@@ -1,0 +1,36 @@
+#!/usr/bin/env sh
+set -eu
+
+PROJECT_DIR="${PROJECT_DIR:-/opt/testing-platform}"
+command_line=${1:-}
+action=$(printf '%s' "$command_line" | awk '{print $1}')
+device_name=$(printf '%s' "$command_line" | awk '{print $2}')
+
+case "$device_name" in
+  ''|*[!A-Za-z0-9._-]*)
+    echo "Invalid device name." >&2
+    exit 2
+    ;;
+esac
+
+case "$action" in
+  enroll)
+    request=$(mktemp)
+    trap 'rm -f "$request"' EXIT
+    cat > "$request"
+    if [ ! -s "$request" ] || [ "$(wc -c < "$request")" -gt 32768 ]; then
+      echo "Invalid CSR size." >&2
+      exit 2
+    fi
+    "$PROJECT_DIR/device-access/server/enroll-csr.sh" "$device_name" "$request" >&2
+    cat "/opt/testing-platform-device-ca/issued/$device_name.crt"
+    ;;
+  revoke)
+    "$PROJECT_DIR/device-access/server/revoke-device.sh" "$device_name" >&2
+    printf '%s\n' "revoked"
+    ;;
+  *)
+    echo "Only enroll and revoke operations are allowed." >&2
+    exit 2
+    ;;
+esac
