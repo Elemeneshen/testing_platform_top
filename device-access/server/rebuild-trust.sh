@@ -5,6 +5,13 @@ set -eu
 require_root
 ensure_directories
 
+[ -s "$AUTHORITY_DIR/ca.crt" ] || {
+  echo "Device authority certificate is missing." >&2
+  exit 1
+}
+cp "$AUTHORITY_DIR/ca.crt" "$RUNTIME_DIR/device-ca.crt"
+chmod 644 "$RUNTIME_DIR/device-ca.crt"
+
 temporary="$RUNTIME_DIR/trusted-clients.pem.tmp"
 : > "$temporary"
 found=0

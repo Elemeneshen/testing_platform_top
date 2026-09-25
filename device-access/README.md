@@ -10,7 +10,11 @@ created inside a Windows TPM and marked non-exportable.
 3. On the server run `server/enroll-csr.sh DEVICE_NAME CSR_FILE`.
 4. Copy the resulting `.cer` file back to that same PC.
 5. On the PC run `windows/Install-TrustedDeviceCertificate.ps1 CERT_FILE`.
-6. After at least one device is installed, run `server/activate.sh`.
+6. Run `server/rebuild-trust.sh` to publish the CA and active-device list.
+7. Run `server/probe.sh`. Confirm the trusted browser offers its certificate and
+   the site still opens. Untrusted devices remain allowed in this mode.
+8. Only after the probe succeeds, run `server/activate.sh` to require a trusted
+   certificate for every connection.
 
 The server stores its private device CA outside the repository in
 `/opt/testing-platform-device-ca`. Never copy or commit that directory.

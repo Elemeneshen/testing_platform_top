@@ -5,7 +5,7 @@ set -eu
 require_root
 ensure_directories
 [ -s "$RUNTIME_DIR/trusted-clients.pem" ] || {
-  echo "Enroll and install at least one device before activation." >&2
+  echo "Enroll at least one device and run rebuild-trust.sh first." >&2
   exit 1
 }
 [ -s "$RUNTIME_DIR/device-ca.crt" ] || {
@@ -16,7 +16,7 @@ ensure_directories
 cat > "$RUNTIME_DIR/mtls.caddy" <<'EOF'
 tls {
     client_auth {
-        mode require_and_verify
+        mode verify_if_given
         trust_pool file /etc/caddy/device-access/device-ca.crt
         verifier leaf {
             file /etc/caddy/device-access/trusted-clients.pem
@@ -26,4 +26,4 @@ tls {
 EOF
 chmod 644 "$RUNTIME_DIR/mtls.caddy"
 reload_caddy
-echo "Trusted-device enforcement is active."
+echo "Trusted-device probe mode is active; clients without certificates remain allowed."
