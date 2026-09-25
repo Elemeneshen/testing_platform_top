@@ -17,7 +17,9 @@ case "$public_key" in
 esac
 
 if ! id device-enroll >/dev/null 2>&1; then
-  useradd --system --create-home --shell /usr/sbin/nologin device-enroll
+  useradd --system --create-home --shell /bin/sh device-enroll
+else
+  usermod --shell /bin/sh device-enroll
 fi
 
 install -o root -g root -m 0755 \
