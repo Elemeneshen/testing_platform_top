@@ -9,23 +9,28 @@ siberianlivecoding.ru {
         reverse_proxy realtime:1234
     }
 
-    handle /auth/* {
+    @auth_api path /auth /auth/*
+    handle @auth_api {
         reverse_proxy backend:8000
     }
 
-    handle /admin/* {
+    @admin_api path /admin /admin/*
+    handle @admin_api {
         reverse_proxy backend:8000
     }
 
-    handle /tasks/* {
+    @tasks_api path /tasks /tasks/*
+    handle @tasks_api {
         reverse_proxy backend:8000
     }
 
-    handle /tests/* {
+    @tests_api path /tests /tests/*
+    handle @tests_api {
         reverse_proxy backend:8000
     }
 
-    handle /student/* {
+    @student_api path /student /student/*
+    handle @student_api {
         reverse_proxy backend:8000
     }
 
