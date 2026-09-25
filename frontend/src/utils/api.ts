@@ -1,5 +1,9 @@
 export const apiFetch = async (input: RequestInfo, init?: RequestInit) => {
-  const response = await fetch(input, {
+  const requestInput = typeof input === 'string' && input.startsWith('/')
+    ? `/api${input}`
+    : input;
+
+  const response = await fetch(requestInput, {
     ...init,
     credentials: 'include', // Important for sending cookies (httpOnly) with requests
     headers: {
@@ -8,17 +12,25 @@ export const apiFetch = async (input: RequestInfo, init?: RequestInit) => {
     },
   });
 
-  // If the response is not OK, we can throw an error with the status and message
+  const contentType = response.headers.get('content-type') ?? '';
+  const isJson = contentType.includes('application/json');
+
+  // Never try to parse the SPA HTML as JSON. Keep the endpoint in the error so
+  // a proxy/configuration regression is immediately visible in the UI.
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
+    const errorData = isJson ? await response.json().catch(() => ({})) : {};
     throw new Error(
-      errorData.detail ?? errorData.message ?? `HTTP error! status: ${response.status}`
+      errorData.detail ?? errorData.message ?? `API request ${String(requestInput)} failed: HTTP ${response.status}`
     );
   }
 
   // If there's no content, return null
   if (response.status === 204) {
     return null;
+  }
+
+  if (!isJson) {
+    throw new Error(`API request ${String(requestInput)} returned ${contentType || 'an unknown content type'} instead of JSON`);
   }
 
   return response.json();

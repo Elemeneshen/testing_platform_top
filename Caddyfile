@@ -9,6 +9,12 @@ siberianlivecoding.ru {
         reverse_proxy realtime:1234
     }
 
+    # Keep API traffic in a dedicated namespace so it can never fall through
+    # to the frontend SPA and return index.html instead of JSON.
+    handle_path /api/* {
+        reverse_proxy backend:8000
+    }
+
     @auth_api path /auth /auth/*
     handle @auth_api {
         reverse_proxy backend:8000
