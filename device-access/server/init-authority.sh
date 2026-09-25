@@ -14,6 +14,9 @@ openssl genpkey -algorithm EC -pkeyopt ec_paramgen_curve:P-256 -out "$AUTHORITY_
 openssl req -x509 -new -sha256 -days 3650 \
   -key "$AUTHORITY_DIR/ca.key" \
   -subj "/CN=Siberian Livecoding Device Authority" \
+  -addext "basicConstraints=critical,CA:TRUE" \
+  -addext "keyUsage=critical,keyCertSign,cRLSign" \
+  -addext "extendedKeyUsage=critical,clientAuth" \
   -out "$AUTHORITY_DIR/ca.crt"
 chmod 600 "$AUTHORITY_DIR/ca.key"
 chmod 644 "$AUTHORITY_DIR/ca.crt"

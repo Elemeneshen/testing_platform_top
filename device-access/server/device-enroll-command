@@ -14,6 +14,9 @@ case "$device_name" in
 esac
 
 case "$action" in
+  ca)
+    cat "/opt/testing-platform-device-ca/ca.crt"
+    ;;
   enroll)
     request=$(mktemp)
     trap 'rm -f "$request"' EXIT
