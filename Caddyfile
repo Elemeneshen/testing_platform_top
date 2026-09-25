@@ -1,6 +1,10 @@
 siberianlivecoding.ru {
     encode zstd gzip
 
+    # Empty until at least one trusted device is enrolled. The activation
+    # script creates an mTLS snippet here without changing this Caddyfile.
+    import /etc/caddy/device-access/*.caddy
+
     handle_path /collab* {
         reverse_proxy realtime:1234
     }
