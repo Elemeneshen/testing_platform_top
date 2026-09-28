@@ -16,5 +16,5 @@ mv "$certificate" "$REVOKED_DIR/$device_name.crt"
 rm -f "$ISSUED_DIR/$device_name.cer"
 
 "$(dirname "$0")/rebuild-trust.sh"
-reload_caddy
+restart_caddy
 echo "Revoked: $device_name"

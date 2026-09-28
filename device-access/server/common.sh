@@ -27,3 +27,10 @@ reload_caddy() {
   cd "$PROJECT_DIR"
   docker compose -f docker-compose.prod.yml exec -T caddy caddy reload --config /etc/caddy/Caddyfile
 }
+
+restart_caddy() {
+  cd "$PROJECT_DIR"
+  # The leaf verifier reads trusted-clients.pem when Caddy starts. A config
+  # reload can be skipped as "unchanged" after only that PEM file changes.
+  docker compose -f docker-compose.prod.yml restart caddy
+}

@@ -16,6 +16,10 @@ created inside a Windows TPM and marked non-exportable.
 8. Only after the probe succeeds, run `server/activate.sh` to require a trusted
    certificate for every connection.
 
+Issuing or revoking a device restarts Caddy so its leaf-certificate verifier
+reloads the generated `trusted-clients.pem` bundle. A configuration reload alone
+is insufficient when only the external bundle contents change.
+
 The server stores its private device CA outside the repository in
 `/opt/testing-platform-device-ca`. Never copy or commit that directory.
 

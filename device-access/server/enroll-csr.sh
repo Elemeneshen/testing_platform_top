@@ -42,6 +42,7 @@ chmod 644 "$ISSUED_DIR/$device_name.crt"
 "$(dirname "$0")/rebuild-trust.sh"
 openssl x509 -in "$ISSUED_DIR/$device_name.crt" -outform DER -out "$ISSUED_DIR/$device_name.cer"
 chmod 644 "$ISSUED_DIR/$device_name.cer"
+restart_caddy
 
 echo "Enrolled: $device_name"
 echo "Return this file to the same PC: $ISSUED_DIR/$device_name.cer"
