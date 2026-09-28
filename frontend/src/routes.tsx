@@ -11,7 +11,15 @@ import TeacherTestCreate from './pages/TeacherTestCreate';
 import TeacherTaskProgress from './pages/TeacherTaskProgress';
 import StudentRegister from './pages/StudentRegister';
 import StudentGroupSelect from './pages/StudentGroupSelect';
+import TeamWorkspace from './pages/TeamWorkspace';
+import TeamBoard from './pages/TeamBoard';
 import { useAuthStore } from './store/authStore';
+import { useTranslation } from './store/languageStore';
+
+const NotFound = () => {
+  const { t } = useTranslation();
+  return <h1>{t('404 — Страница не найдена', '404 — Page not found')}</h1>;
+};
 
 const ProtectedRoute = ({ children, expectedRole }: { children: React.ReactNode; expectedRole: 'student' | 'teacher' }) => {
   const { role, isAuthenticated } = useAuthStore();
@@ -54,6 +62,8 @@ const AppRoutes: React.FC = () => {
               </ProtectedRoute>
             }
           />
+          <Route path="/student/teams" element={<ProtectedRoute expectedRole="student"><TeamWorkspace /></ProtectedRoute>} />
+          <Route path="/student/teams/:teamId" element={<ProtectedRoute expectedRole="student"><TeamBoard /></ProtectedRoute>} />
 
           {/* Protected teacher routes */}
           <Route
@@ -88,11 +98,13 @@ const AppRoutes: React.FC = () => {
               </ProtectedRoute>
             }
           />
+          <Route path="/teacher/teams" element={<ProtectedRoute expectedRole="teacher"><TeamWorkspace /></ProtectedRoute>} />
+          <Route path="/teacher/teams/:teamId" element={<ProtectedRoute expectedRole="teacher"><TeamBoard /></ProtectedRoute>} />
 
           {/* Redirect root to login */}
           <Route path="/" element={<Navigate to="/login" replace />} />
           {/* Catch-all for 404 */}
-          <Route path="*" element={<h1>404 - Not Found</h1>} />
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </Layout>
   );

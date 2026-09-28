@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { apiFetch } from '../utils/api';
+import { useTranslation } from '../store/languageStore';
 
 interface TeacherLoginCredentials {
   email: string;
@@ -11,6 +12,7 @@ interface TeacherLoginCredentials {
 const TeacherLogin: React.FC = () => {
   const navigate = useNavigate();
   const { login } = useAuthStore();
+  const { t } = useTranslation();
   const [credentials, setCredentials] = useState<TeacherLoginCredentials>({
     email: '',
     password: ''
@@ -44,7 +46,7 @@ const handleSubmit = async (e: React.FormEvent) => {
     login('teacher');
     navigate('/teacher/dashboard');
   } catch (err: any) {
-    setError(err.message || 'Login failed');
+    setError(err.message || t('Не удалось войти', 'Login failed'));
   } finally {
     setLoading(false);
   }
@@ -52,8 +54,9 @@ const handleSubmit = async (e: React.FormEvent) => {
 
   return (
     <div className="login-page">
-      <h2>Teacher Login</h2>
-      <p className="page-subtitle">Manage tests, review code and track student progress.</p>
+      <span className="login-page__eyebrow">{t('Защищённый вход', 'Secure access')}</span>
+      <h2>{t('Вход для учителя', 'Teacher Login')}</h2>
+      <p className="page-subtitle">{t('Управляйте заданиями, проверяйте код и следите за прогрессом.', 'Manage tests, review code and track student progress.')}</p>
       {error && <div className="error">{error}</div>}
       <form onSubmit={handleSubmit}>
         <div>
@@ -68,7 +71,7 @@ const handleSubmit = async (e: React.FormEvent) => {
           />
         </div>
         <div>
-          <label htmlFor="password">Password:</label>
+          <label htmlFor="password">{t('Пароль:', 'Password:')}</label>
           <input
             type="password"
             id="password"
@@ -79,10 +82,10 @@ const handleSubmit = async (e: React.FormEvent) => {
           />
         </div>
         <button type="submit" disabled={loading}>
-          {loading ? 'Logging in...' : 'Login'}
+          {loading ? t('Входим…', 'Logging in...') : t('Войти', 'Login')}
         </button>
       </form>
-      <p className="login-switch">Joining a test? <Link to="/login">Student sign in</Link></p>
+      <p className="login-switch">{t('Вы ученик?', 'Joining a test?')} <Link to="/login">{t('Вход для ученика', 'Student sign in')}</Link></p>
     </div>
   );
 };

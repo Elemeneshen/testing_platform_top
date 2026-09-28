@@ -246,3 +246,84 @@ class Grade(Base):
     # Relationships
     task = relationship("Task", back_populates="grades")
     student = relationship("Student")
+
+
+team_membership = Table(
+    "team_membership",
+    Base.metadata,
+    Column("team_id", Integer, ForeignKey("teams.id", ondelete="CASCADE"), primary_key=True),
+    Column("student_id", Integer, ForeignKey("students.id", ondelete="CASCADE"), primary_key=True),
+    Column("joined_at", DateTime, default=datetime.utcnow, nullable=False),
+)
+
+
+class TeamSession(Base):
+    __tablename__ = "team_sessions"
+
+    id = Column(Integer, primary_key=True, index=True)
+    teacher_id = Column(Integer, ForeignKey("teachers.id", ondelete="CASCADE"), nullable=False)
+    group_id = Column(Integer, ForeignKey("student_groups.id", ondelete="CASCADE"), nullable=False)
+    title = Column(String(160), nullable=False)
+    description = Column(Text, nullable=True)
+    is_active = Column(Boolean, nullable=False, default=True)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+    teacher = relationship("Teacher")
+    group = relationship("StudentGroup")
+    teams = relationship("Team", back_populates="session", cascade="all, delete-orphan")
+
+
+class Team(Base):
+    __tablename__ = "teams"
+    __table_args__ = (UniqueConstraint("session_id", "name", name="uq_team_session_name"),)
+
+    id = Column(Integer, primary_key=True, index=True)
+    session_id = Column(Integer, ForeignKey("team_sessions.id", ondelete="CASCADE"), nullable=False)
+    name = Column(String(80), nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+    session = relationship("TeamSession", back_populates="teams")
+    members = relationship("Student", secondary=team_membership)
+    board = relationship("KanbanBoard", back_populates="team", uselist=False, cascade="all, delete-orphan")
+
+
+class KanbanBoard(Base):
+    __tablename__ = "kanban_boards"
+
+    id = Column(Integer, primary_key=True, index=True)
+    team_id = Column(Integer, ForeignKey("teams.id", ondelete="CASCADE"), unique=True, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+    team = relationship("Team", back_populates="board")
+    columns = relationship("KanbanColumn", back_populates="board", cascade="all, delete-orphan", order_by="KanbanColumn.position")
+
+
+class KanbanColumn(Base):
+    __tablename__ = "kanban_columns"
+
+    id = Column(Integer, primary_key=True, index=True)
+    board_id = Column(Integer, ForeignKey("kanban_boards.id", ondelete="CASCADE"), nullable=False)
+    title = Column(String(80), nullable=False)
+    position = Column(Integer, nullable=False)
+
+    board = relationship("KanbanBoard", back_populates="columns")
+    cards = relationship("KanbanCard", back_populates="column", cascade="all, delete-orphan", order_by="KanbanCard.position")
+
+
+class KanbanCard(Base):
+    __tablename__ = "kanban_cards"
+
+    id = Column(Integer, primary_key=True, index=True)
+    column_id = Column(Integer, ForeignKey("kanban_columns.id", ondelete="CASCADE"), nullable=False)
+    title = Column(String(160), nullable=False)
+    description = Column(Text, nullable=True)
+    assignee_id = Column(Integer, ForeignKey("students.id", ondelete="SET NULL"), nullable=True)
+    created_by_student_id = Column(Integer, ForeignKey("students.id", ondelete="SET NULL"), nullable=True)
+    priority = Column(String(20), nullable=False, default="normal")
+    position = Column(Integer, nullable=False, default=0)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+
+    column = relationship("KanbanColumn", back_populates="cards")
+    assignee = relationship("Student", foreign_keys=[assignee_id])
+    created_by_student = relationship("Student", foreign_keys=[created_by_student_id])

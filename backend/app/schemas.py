@@ -94,6 +94,92 @@ class GroupRead(BaseSchema):
     created_at: datetime
 
 
+class TeamMemberRead(BaseSchema):
+    id: int
+    full_name: str
+    username: Optional[str] = None
+
+
+class TeamCreate(BaseSchema):
+    name: str = Field(..., min_length=1, max_length=80)
+    member_ids: List[int] = []
+
+
+class TeamMembersUpdate(BaseSchema):
+    member_ids: List[int]
+
+
+class TeamSessionCreate(BaseSchema):
+    group_id: int
+    title: str = Field(..., min_length=1, max_length=160)
+    description: Optional[str] = None
+
+
+class TeamRead(BaseSchema):
+    id: int
+    name: str
+    members: List[TeamMemberRead] = []
+    board_id: Optional[int] = None
+
+
+class TeamSessionRead(BaseSchema):
+    id: int
+    group_id: int
+    group_name: str
+    title: str
+    description: Optional[str] = None
+    is_active: bool
+    created_at: datetime
+    teams: List[TeamRead] = []
+
+
+class KanbanCardCreate(BaseSchema):
+    column_id: int
+    title: str = Field(..., min_length=1, max_length=160)
+    description: Optional[str] = None
+    assignee_id: Optional[int] = None
+    priority: Literal['low', 'normal', 'high'] = 'normal'
+
+
+class KanbanCardUpdate(BaseSchema):
+    column_id: Optional[int] = None
+    title: Optional[str] = Field(None, min_length=1, max_length=160)
+    description: Optional[str] = None
+    assignee_id: Optional[int] = None
+    priority: Optional[Literal['low', 'normal', 'high']] = None
+    position: Optional[int] = None
+
+
+class KanbanCardRead(BaseSchema):
+    id: int
+    column_id: int
+    title: str
+    description: Optional[str] = None
+    assignee_id: Optional[int] = None
+    assignee_name: Optional[str] = None
+    created_by_student_id: Optional[int] = None
+    created_by_name: Optional[str] = None
+    priority: str
+    position: int
+    updated_at: datetime
+
+
+class KanbanColumnRead(BaseSchema):
+    id: int
+    title: str
+    position: int
+    cards: List[KanbanCardRead] = []
+
+
+class KanbanBoardRead(BaseSchema):
+    id: int
+    team_id: int
+    team_name: str
+    session_title: str
+    members: List[TeamMemberRead] = []
+    columns: List[KanbanColumnRead] = []
+
+
 class RegistrationCodeRead(BaseSchema):
     registration_code: str
 

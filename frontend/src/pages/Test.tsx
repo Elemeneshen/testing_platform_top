@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import ThemePicker from '../components/ThemePicker';
 import { useAuthStore } from '../store/authStore';
 import { apiFetch } from '../utils/api';
+import { useTranslation } from '../store/languageStore';
 
 // Helper function to get task status
 const getTaskStatus = (task: any) => {
@@ -22,19 +24,20 @@ const getTaskStatus = (task: any) => {
 };
 
 // Status label mapping
-const getStatusLabel = (status: string) => {
+const getStatusLabel = (status: string, t: (ru: string, en: string) => string) => {
   switch (status) {
-    case 'not-started': return 'Not started';
-    case 'correct': return 'Correctly submitted';
-    case 'incorrect': return 'Incorrectly submitted';
-    case 'has-comments': return 'Has comments';
-    default: return 'Unknown';
+    case 'not-started': return t('Не начато', 'Not started');
+    case 'correct': return t('Решено верно', 'Correctly submitted');
+    case 'incorrect': return t('Есть ошибка', 'Incorrectly submitted');
+    case 'has-comments': return t('Есть комментарии', 'Has comments');
+    default: return t('Неизвестно', 'Unknown');
   }
 };
 
 const Test: React.FC = () => {
   const navigate = useNavigate();
   const { role } = useAuthStore();
+  const { t } = useTranslation();
   const [test, setTest] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -53,7 +56,7 @@ const Test: React.FC = () => {
         const data = await apiFetch('/tasks');
         setTest(data);
       } catch (err: any) {
-        setError(err.message || 'Failed to load test');
+        setError(err.message || t('Не удалось загрузить задания', 'Failed to load test'));
       } finally {
         setLoading(false);
       }
@@ -62,19 +65,20 @@ const Test: React.FC = () => {
     fetchTest();
   }, [navigate, role]);
 
-  if (loading) return <div className="loading-state">Loading test…</div>;
+  if (loading) return <div className="loading-state">{t('Загружаем задания…', 'Loading test…')}</div>;
   if (error) return <div className="error">{error}</div>;
 
   return (
     <div className="test-page">
-      <div className="page-heading"><div className="page-heading__copy"><span className="eyebrow">Student workspace</span><h2>Your tasks</h2><p className="page-subtitle">Only assignments published for you or your group appear here.</p></div><div className="task-meta"><span className="meta-chip">{test.length} tasks</span></div></div>
-      {test.length === 0 ? <div className="empty-state"><span className="empty-state__icon">0</span><b>No active tasks</b><p>Your teacher has not published any assignments for you yet.</p></div> : <ul className="resource-list">
+      <div className="page-heading"><div className="page-heading__copy"><span className="eyebrow">{t('Рабочее пространство ученика', 'Student workspace')}</span><h2>{t('Ваши задания', 'Your tasks')}</h2><p className="page-subtitle">{t('Здесь показаны задания, опубликованные для вас или вашей группы.', 'Only assignments published for you or your group appear here.')}</p></div><div className="task-meta"><span className="meta-chip">{test.length} {t('заданий', 'tasks')}</span></div></div>
+      <ThemePicker compact audience="student" />
+      {test.length === 0 ? <div className="empty-state"><span className="empty-state__icon">0</span><b>{t('Нет активных заданий', 'No active tasks')}</b><p>{t('Учитель пока не опубликовал для вас задания.', 'Your teacher has not published any assignments for you yet.')}</p></div> : <ul className="resource-list">
         {test.map((task: any, index: number) => {
           const status = getTaskStatus(task);
-          const statusLabel = getStatusLabel(status);
+          const statusLabel = getStatusLabel(status, t);
 
           return (
-            <li className="resource-card" key={task.id}><div className="resource-card__main"><span className="resource-card__index">{String(index + 1).padStart(2, '0')}</span><div className="resource-card__copy"><b>{task.title}</b><span>{task.type === 'code_review' ? 'Code review' : 'Auto-check'} task</span></div></div><div className="resource-card__side"><span className={`status-badge status-badge--${status}`}>{statusLabel}</span><button className="button-secondary" onClick={() => navigate(`/task/${task.id}`)}>Open task →</button></div></li>
+            <li className="resource-card" key={task.id}><div className="resource-card__main"><span className="resource-card__index">{String(index + 1).padStart(2, '0')}</span><div className="resource-card__copy"><b>{task.title}</b><span>{task.type === 'code_review' ? t('Проверка кода', 'Code review') : t('Автопроверка', 'Auto-check')}</span></div></div><div className="resource-card__side"><span className={`status-badge status-badge--${status}`}>{statusLabel}</span><button className="button-secondary" onClick={() => navigate(`/task/${task.id}`)}>{t('Открыть задание →', 'Open task →')}</button></div></li>
           );
         })}
       </ul>}

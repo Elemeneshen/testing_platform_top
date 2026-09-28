@@ -15,31 +15,6 @@ siberianlivecoding.ru {
         reverse_proxy backend:8000
     }
 
-    @auth_api path /auth /auth/*
-    handle @auth_api {
-        reverse_proxy backend:8000
-    }
-
-    @admin_api path /admin /admin/*
-    handle @admin_api {
-        reverse_proxy backend:8000
-    }
-
-    @tasks_api path /tasks /tasks/*
-    handle @tasks_api {
-        reverse_proxy backend:8000
-    }
-
-    @tests_api path /tests /tests/*
-    handle @tests_api {
-        reverse_proxy backend:8000
-    }
-
-    @student_api path /student /student/*
-    handle @student_api {
-        reverse_proxy backend:8000
-    }
-
     handle /health {
         reverse_proxy backend:8000
     }

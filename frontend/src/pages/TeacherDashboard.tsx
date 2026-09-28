@@ -1,12 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import ThemePicker from '../components/ThemePicker';
 import { useAuthStore } from '../store/authStore';
 import { apiFetch } from '../utils/api';
 import './TeacherDashboard.css';
+import { useTranslation } from '../store/languageStore';
 
 const TeacherDashboard: React.FC = () => {
   const navigate = useNavigate();
   const { role } = useAuthStore();
+  const { t } = useTranslation();
   const [tests, setTests] = useState<any[]>([]);
   const [groups, setGroups] = useState<any[]>([]);
   const [students, setStudents] = useState<any[]>([]);
@@ -34,7 +37,7 @@ const TeacherDashboard: React.FC = () => {
         setStudents(studentsData);
         setRegistrationCode(codeData.registration_code);
       } catch (err: any) {
-        setError(err.message || 'Failed to load tests');
+        setError(err.message || t('Не удалось загрузить данные', 'Failed to load tests'));
       } finally {
         setLoading(false);
       }
@@ -48,31 +51,31 @@ const TeacherDashboard: React.FC = () => {
     event.preventDefault();
     if (!newGroupName.trim()) return;
     try { await apiFetch('/admin/groups', { method: 'POST', body: JSON.stringify({ name: newGroupName }) }); setNewGroupName(''); await refreshGroups(); }
-    catch (err: any) { setError(err.message || 'Failed to create group'); }
+    catch (err: any) { setError(err.message || t('Не удалось создать группу', 'Failed to create group')); }
   };
   const renameGroup = async (group: any) => {
-    const name = window.prompt('New group name', group.name)?.trim();
+    const name = window.prompt(t('Новое название группы', 'New group name'), group.name)?.trim();
     if (!name || name === group.name) return;
     try { await apiFetch(`/admin/groups/${group.id}`, { method: 'PATCH', body: JSON.stringify({ name }) }); await refreshGroups(); }
-    catch (err: any) { setError(err.message || 'Failed to rename group'); }
+    catch (err: any) { setError(err.message || t('Не удалось переименовать группу', 'Failed to rename group')); }
   };
   const deleteGroup = async (group: any) => {
-    if (!window.confirm(`Delete group “${group.name}”?`)) return;
+    if (!window.confirm(t(`Удалить группу «${group.name}»?`, `Delete group “${group.name}”?`))) return;
     try { await apiFetch(`/admin/groups/${group.id}`, { method: 'DELETE' }); await refreshGroups(); }
-    catch (err: any) { setError(err.message || 'Failed to delete group'); }
+    catch (err: any) { setError(err.message || t('Не удалось удалить группу', 'Failed to delete group')); }
   };
   const toggleTaskVisibility = async (task: any) => {
     try {
       await apiFetch(`/admin/tasks/${task.id}/visibility`, { method: 'PATCH', body: JSON.stringify({ is_visible: !task.is_visible }) });
       setTests((current) => current.map((item) => item.id === task.id ? { ...item, is_visible: !item.is_visible } : item));
-    } catch (err: any) { setError(err.message || 'Failed to update visibility'); }
+    } catch (err: any) { setError(err.message || t('Не удалось изменить видимость', 'Failed to update visibility')); }
   };
   const changeStudentGroup = async (studentId: number, groupId: number) => {
     try {
       const profile = await apiFetch(`/admin/students/${studentId}/group`, { method: 'PATCH', body: JSON.stringify({ group_id: groupId }) });
       setStudents((current) => current.map((student) => student.id === studentId ? { ...student, group_id: profile.group_id, group_name: profile.group_name } : student));
       await refreshGroups();
-    } catch (err: any) { setError(err.message || 'Failed to change student group'); }
+    } catch (err: any) { setError(err.message || t('Не удалось изменить группу ученика', 'Failed to change student group')); }
   };
   const copyRegistrationCode = async () => {
     await navigator.clipboard.writeText(registrationCode);
@@ -80,40 +83,42 @@ const TeacherDashboard: React.FC = () => {
     window.setTimeout(() => setCodeCopied(false), 1500);
   };
   const rotateRegistrationCode = async () => {
-    if (!window.confirm('Generate a new registration code? The current code will stop working immediately.')) return;
+    if (!window.confirm(t('Создать новый код регистрации? Текущий код сразу перестанет работать.', 'Generate a new registration code? The current code will stop working immediately.'))) return;
     try {
       const data = await apiFetch('/admin/registration-code/rotate', { method: 'POST' });
       setRegistrationCode(data.registration_code);
       setCodeCopied(false);
-    } catch (err: any) { setError(err.message || 'Failed to update registration code'); }
+    } catch (err: any) { setError(err.message || t('Не удалось обновить код регистрации', 'Failed to update registration code')); }
   };
 
-  if (loading) return <div className="loading-state">Loading workspace…</div>;
+  if (loading) return <div className="loading-state">{t('Загружаем рабочее пространство…', 'Loading workspace…')}</div>;
   if (error) return <div className="error">{error}</div>;
 
   return (
     <div className="teacher-dashboard">
       <div className="page-heading">
-        <div className="page-heading__copy"><span className="eyebrow">Teacher workspace</span><h2>Your tasks</h2><p className="page-subtitle">Assign work to groups or individual students and control when it becomes visible.</p></div>
-        <div className="page-actions"><button className="button" onClick={() => navigate('/teacher/tests/create')}>＋ Create task</button></div>
+        <div className="page-heading__copy"><span className="eyebrow">{t('Рабочее пространство учителя', 'Teacher workspace')}</span><h2>{t('Ваши задания', 'Your tasks')}</h2><p className="page-subtitle">{t('Назначайте задания группам или отдельным ученикам и управляйте их видимостью.', 'Assign work to groups or individual students and control when it becomes visible.')}</p></div>
+        <div className="page-actions"><button className="button" onClick={() => navigate('/teacher/tests/create')}>{t('＋ Создать задание', '＋ Create task')}</button></div>
       </div>
 
-      <div className="dashboard-stats"><div className="stat-card"><span>Total tasks</span><b>{totalTasks}</b></div><div className="stat-card"><span>Published</span><b>{tests.filter((task) => task.is_visible).length}</b></div><div className="stat-card"><span>Assigned seats</span><b>{tests.reduce((count, task) => count + (task.assigned_student_count ?? 0), 0)}</b></div></div>
+      <div className="dashboard-stats"><div className="stat-card"><span>{t('Всего заданий', 'Total tasks')}</span><b>{totalTasks}</b></div><div className="stat-card"><span>{t('Опубликовано', 'Published')}</span><b>{tests.filter((task) => task.is_visible).length}</b></div><div className="stat-card"><span>{t('Назначено ученикам', 'Assigned seats')}</span><b>{tests.reduce((count, task) => count + (task.assigned_student_count ?? 0), 0)}</b></div></div>
+
+      <ThemePicker />
 
       <section className="registration-code-card panel">
-        <div><span className="eyebrow">Closed registration</span><h3>Student registration code</h3><p>Share this code during the lecture. New students will be linked to your groups.</p></div>
-        <div className="registration-code-card__controls"><button type="button" className="registration-code-card__code" onClick={copyRegistrationCode} title="Copy registration code">{registrationCode}</button><button type="button" className="button-secondary" onClick={copyRegistrationCode}>{codeCopied ? 'Copied' : 'Copy'}</button><button type="button" className="button-ghost" onClick={rotateRegistrationCode}>Change code</button></div>
+        <div><span className="eyebrow">{t('Закрытая регистрация', 'Closed registration')}</span><h3>{t('Код регистрации учеников', 'Student registration code')}</h3><p>{t('Назовите этот код на занятии. Новые ученики смогут выбрать одну из ваших групп.', 'Share this code during the lecture. New students will be linked to your groups.')}</p></div>
+        <div className="registration-code-card__controls"><button type="button" className="registration-code-card__code" onClick={copyRegistrationCode} title={t('Скопировать код регистрации', 'Copy registration code')}>{registrationCode}</button><button type="button" className="button-secondary" onClick={copyRegistrationCode}>{codeCopied ? t('Скопировано', 'Copied') : t('Копировать', 'Copy')}</button><button type="button" className="button-ghost" onClick={rotateRegistrationCode}>{t('Сменить код', 'Change code')}</button></div>
       </section>
 
       <section className="group-manager panel">
-        <header><div><span className="eyebrow">Class management</span><h3>Student groups</h3></div><form onSubmit={createGroup}><input value={newGroupName} onChange={(event) => setNewGroupName(event.target.value)} placeholder="New group name" maxLength={80} /><button className="button" type="submit" disabled={!newGroupName.trim()}>＋ Add group</button></form></header>
-        {groups.length === 0 ? <div className="test-group__empty">No groups yet. Create one so students can join it after registration.</div> : <><div className="group-manager__grid">{groups.map((group) => <article className="group-card" key={group.id}><span className="group-card__mark">{group.name.slice(0, 2).toUpperCase()}</span><div><b>{group.name}</b><small>{group.student_count} students</small></div><div className="group-card__actions"><button type="button" onClick={() => renameGroup(group)}>Rename</button><button type="button" className="danger-link" onClick={() => deleteGroup(group)}>Delete</button></div></article>)}</div>{students.length > 0 && <div className="student-group-editor"><span className="assignment-picker__label">Student assignments</span>{students.map((student) => <div className="student-group-editor__row" key={student.id}><div><b>{student.full_name}</b><small>@{student.username}{student.group_name ? ` · ${student.group_name}` : ' · Waiting for group'}</small></div><select value={student.group_id ?? ''} onChange={(event) => changeStudentGroup(student.id, Number(event.target.value))}><option value="" disabled>Select group</option>{groups.map((group) => <option value={group.id} key={group.id}>{group.name}</option>)}</select></div>)}</div>}</>}
+        <header><div><span className="eyebrow">{t('Управление классом', 'Class management')}</span><h3>{t('Группы учеников', 'Student groups')}</h3></div><form onSubmit={createGroup}><input value={newGroupName} onChange={(event) => setNewGroupName(event.target.value)} placeholder={t('Название новой группы', 'New group name')} maxLength={80} /><button className="button" type="submit" disabled={!newGroupName.trim()}>{t('＋ Добавить группу', '＋ Add group')}</button></form></header>
+        {groups.length === 0 ? <div className="test-group__empty">{t('Групп пока нет. Создайте группу, чтобы ученики могли выбрать её после регистрации.', 'No groups yet. Create one so students can join it after registration.')}</div> : <><div className="group-manager__grid">{groups.map((group) => <article className="group-card" key={group.id}><span className="group-card__mark">{group.name.slice(0, 2).toUpperCase()}</span><div><b>{group.name}</b><small>{group.student_count} {t('учеников', 'students')}</small></div><div className="group-card__actions"><button type="button" onClick={() => renameGroup(group)}>{t('Переименовать', 'Rename')}</button><button type="button" className="danger-link" onClick={() => deleteGroup(group)}>{t('Удалить', 'Delete')}</button></div></article>)}</div>{students.length > 0 && <div className="student-group-editor"><span className="assignment-picker__label">{t('Распределение учеников', 'Student assignments')}</span>{students.map((student) => <div className="student-group-editor__row" key={student.id}><div><b>{student.full_name}</b><small>@{student.username}{student.group_name ? ` · ${student.group_name}` : t(' · Ожидает выбора группы', ' · Waiting for group')}</small></div><select value={student.group_id ?? ''} onChange={(event) => changeStudentGroup(student.id, Number(event.target.value))}><option value="" disabled>{t('Выберите группу', 'Select group')}</option>{groups.map((group) => <option value={group.id} key={group.id}>{group.name}</option>)}</select></div>)}</div>}</>}
       </section>
 
       {tests.length === 0 ? (
-        <div className="empty-state"><span className="empty-state__icon">＋</span><b>No tasks yet</b><p>Create an assignment and choose who should receive it.</p><button className="button" onClick={() => navigate('/teacher/tests/create')}>Create first task</button></div>
+        <div className="empty-state"><span className="empty-state__icon">＋</span><b>{t('Заданий пока нет', 'No tasks yet')}</b><p>{t('Создайте задание и выберите, кому его назначить.', 'Create an assignment and choose who should receive it.')}</p><button className="button" onClick={() => navigate('/teacher/tests/create')}>{t('Создать первое задание', 'Create first task')}</button></div>
       ) : (
-          <ul className="resource-list">{tests.map((task: any, index: number) => <li className="resource-card" key={task.id}><div className="resource-card__main"><span className="resource-card__index">{String(index + 1).padStart(2, '0')}</span><div className="resource-card__copy"><b>{task.title}</b><span>{task.type === 'code_review' ? 'Code review' : 'Auto-check'} · {task.groups.map((group: any) => group.name).join(', ') || task.students.map((student: any) => student.name).join(', ')} · {task.assigned_student_count} students</span></div></div><div className="resource-card__side"><button className={task.is_visible ? 'visibility-toggle visibility-toggle--on' : 'visibility-toggle'} onClick={() => toggleTaskVisibility(task)}>{task.is_visible ? 'Visible' : 'Hidden'}</button><button className="button-secondary" onClick={() => navigate(`/teacher/task/${task.id}`)}>Progress →</button></div></li>)}</ul>
+          <ul className="resource-list">{tests.map((task: any, index: number) => <li className="resource-card" key={task.id}><div className="resource-card__main"><span className="resource-card__index">{String(index + 1).padStart(2, '0')}</span><div className="resource-card__copy"><b>{task.title}</b><span>{task.type === 'code_review' ? t('Проверка кода', 'Code review') : t('Автопроверка', 'Auto-check')} · {task.groups.map((group: any) => group.name).join(', ') || task.students.map((student: any) => student.name).join(', ')} · {task.assigned_student_count} {t('учеников', 'students')}</span></div></div><div className="resource-card__side"><button className={task.is_visible ? 'visibility-toggle visibility-toggle--on' : 'visibility-toggle'} onClick={() => toggleTaskVisibility(task)}>{task.is_visible ? t('Видно', 'Visible') : t('Скрыто', 'Hidden')}</button><button className="button-secondary" onClick={() => navigate(`/teacher/task/${task.id}`)}>{t('Прогресс →', 'Progress →')}</button></div></li>)}</ul>
       )}
     </div>
   );

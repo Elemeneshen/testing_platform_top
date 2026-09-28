@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { apiFetch } from '../utils/api';
+import { useTranslation } from '../store/languageStore';
 
 interface StudentLoginCredentials {
   username: string;
@@ -11,6 +12,7 @@ interface StudentLoginCredentials {
 const Login: React.FC = () => {
   const navigate = useNavigate();
   const { login } = useAuthStore();
+  const { t } = useTranslation();
   const [credentials, setCredentials] = useState<StudentLoginCredentials>({
     username: '',
     password: ''
@@ -38,7 +40,7 @@ const Login: React.FC = () => {
       login('student');
       navigate(result.needs_group ? '/student/group' : '/test');
     } catch (err: any) {
-      setError(err.message || 'Login failed');
+      setError(err.message || t('Не удалось войти', 'Login failed'));
     } finally {
       setLoading(false);
     }
@@ -46,12 +48,13 @@ const Login: React.FC = () => {
 
   return (
     <div className="login-page">
-      <h2>Student Login</h2>
-      <p className="page-subtitle">Sign in with your student account.</p>
+      <span className="login-page__eyebrow">{t('Защищённый вход', 'Secure access')}</span>
+      <h2>{t('Вход для ученика', 'Student Login')}</h2>
+      <p className="page-subtitle">{t('Войдите в свою учётную запись.', 'Sign in with your student account.')}</p>
       {error && <div className="error">{error}</div>}
       <form onSubmit={handleSubmit}>
         <div>
-          <label htmlFor="username">Username:</label>
+          <label htmlFor="username">{t('Логин:', 'Username:')}</label>
           <input
             type="text"
             id="username"
@@ -62,7 +65,7 @@ const Login: React.FC = () => {
           />
         </div>
         <div>
-          <label htmlFor="password">Password:</label>
+          <label htmlFor="password">{t('Пароль:', 'Password:')}</label>
           <input
             type="password"
             id="password"
@@ -73,10 +76,10 @@ const Login: React.FC = () => {
           />
         </div>
         <button type="submit" disabled={loading}>
-          {loading ? 'Logging in...' : 'Login'}
+          {loading ? t('Входим…', 'Logging in...') : t('Войти', 'Login')}
         </button>
       </form>
-      <p className="login-switch">No account? <Link to="/register">Create one</Link><br />Are you a teacher? <Link to="/teacher/login">Teacher sign in</Link></p>
+      <p className="login-switch">{t('Нет аккаунта?', 'No account?')} <Link to="/register">{t('Зарегистрироваться', 'Create one')}</Link><br />{t('Вы учитель?', 'Are you a teacher?')} <Link to="/teacher/login">{t('Вход для учителя', 'Teacher sign in')}</Link></p>
     </div>
   );
 };

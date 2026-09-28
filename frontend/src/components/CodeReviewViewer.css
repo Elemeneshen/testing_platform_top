@@ -13,3 +13,39 @@
 .live-code__composer-footer{display:flex;align-items:center;justify-content:space-between;margin-top:8px;color:#647286;font-size:9px}.live-code__composer-footer button{display:flex;align-items:center;gap:6px;padding:7px 10px;color:#fff;background:linear-gradient(135deg,#7c3aed,#6366f1);border:0;border-radius:7px;cursor:pointer;font-size:10px;font-weight:700;box-shadow:0 6px 18px rgba(124,58,237,.24)}.live-code__composer-footer button:disabled{opacity:.45;cursor:not-allowed;box-shadow:none}.live-code__composer-footer svg{width:12px;height:12px}
 @media(max-width:800px){.live-code{min-height:760px}.live-code__workspace{grid-template-columns:1fr;grid-template-rows:minmax(380px,1fr) 330px}.live-code__review{border-top:1px solid var(--lc-line);border-left:0}.live-code__status span:nth-child(n+2),.live-code__mode,.live-code__statusbar span:nth-child(n+3){display:none}}
 @media(max-width:480px){.live-code{border-radius:10px}.live-code__topbar{padding:0 10px}.live-code__language,.live-code__icon-button span{display:none}.live-code__icon-button{padding:7px}.live-code__statusbar{gap:10px}.live-code__review-header{min-height:64px}}
+
+/* The live workspace follows the application theme while keeping syntax
+   contrast optimized separately inside CodeMirror. */
+html[data-theme='studio'] .live-code{
+  --lc-bg:#f4f1ec;--lc-panel:#eae5dc;--lc-line:#d6cfc2;--lc-muted:#6b655c;--lc-text:#2a2724;--lc-accent:#9c4a3e;
+  border-color:var(--lc-line);border-radius:4px;box-shadow:0 18px 45px rgba(52,45,38,.08)
+}
+html[data-theme='terminal'] .live-code{
+  --lc-bg:#1c1b1a;--lc-panel:#242220;--lc-line:#3a362f;--lc-muted:#a39c90;--lc-text:#e8e3dc;--lc-accent:#b2564a;
+  border-color:var(--lc-line);border-radius:4px;box-shadow:0 20px 55px rgba(0,0,0,.24)
+}
+html[data-theme='aurora'] .live-code{
+  --lc-bg:#07131d;--lc-panel:#0d202c;--lc-line:#1a3a49;--lc-muted:#668895;--lc-text:#e9fbff;--lc-accent:#20c7d9;
+  border-color:var(--lc-line);box-shadow:0 26px 70px rgba(0,6,12,.34)
+}
+html[data-theme='studio'] .live-code__topbar,html[data-theme='terminal'] .live-code__topbar,html[data-theme='aurora'] .live-code__topbar{background:var(--lc-panel)}
+html[data-theme='studio'] .live-code__logo,html[data-theme='terminal'] .live-code__logo{color:var(--lc-accent);background:transparent;border:1px solid var(--lc-accent);border-radius:2px;box-shadow:none}
+html[data-theme='studio'] .live-code__language,html[data-theme='terminal'] .live-code__language,html[data-theme='aurora'] .live-code__language{color:var(--lc-muted);background:transparent;border-color:var(--lc-line);border-radius:3px}
+html[data-theme='studio'] .live-code__icon-button,html[data-theme='terminal'] .live-code__icon-button,html[data-theme='aurora'] .live-code__icon-button{color:var(--lc-muted);border-radius:3px}
+html[data-theme='studio'] .live-code__icon-button:hover,html[data-theme='terminal'] .live-code__icon-button:hover,html[data-theme='aurora'] .live-code__icon-button:hover{color:var(--lc-text);background:var(--lc-bg);border-color:var(--lc-line)}
+html[data-theme='studio'] .live-code__tabs,html[data-theme='terminal'] .live-code__tabs,html[data-theme='aurora'] .live-code__tabs{background:var(--lc-panel)}
+html[data-theme='studio'] .live-code__tab,html[data-theme='terminal'] .live-code__tab,html[data-theme='aurora'] .live-code__tab{color:var(--lc-text);background:var(--lc-bg)}
+html[data-theme='studio'] .live-code__editor,html[data-theme='terminal'] .live-code__editor{background:var(--lc-bg)}
+html[data-theme='studio'] .live-code__statusbar,html[data-theme='terminal'] .live-code__statusbar,html[data-theme='aurora'] .live-code__statusbar{color:var(--lc-muted);background:var(--lc-panel)}
+html[data-theme='studio'] .live-code__review h3,html[data-theme='terminal'] .live-code__review h3,html[data-theme='aurora'] .live-code__review h3{color:var(--lc-text)}
+html[data-theme='studio'] .live-code__eyebrow,html[data-theme='terminal'] .live-code__eyebrow,html[data-theme='aurora'] .live-code__eyebrow{color:var(--lc-accent)}
+html[data-theme='studio'] .live-code__count,html[data-theme='terminal'] .live-code__count,html[data-theme='aurora'] .live-code__count{color:var(--lc-muted);background:transparent;border-color:var(--lc-line);border-radius:3px}
+html[data-theme='studio'] .live-code__comment:hover,html[data-theme='terminal'] .live-code__comment:hover,html[data-theme='aurora'] .live-code__comment:hover{background:var(--lc-bg);border-color:var(--lc-line)}
+html[data-theme='studio'] .live-code__comment-meta b,html[data-theme='terminal'] .live-code__comment-meta b,html[data-theme='aurora'] .live-code__comment-meta b{color:var(--lc-text)}
+html[data-theme='studio'] .live-code__comment-meta em,html[data-theme='terminal'] .live-code__comment-meta em,html[data-theme='aurora'] .live-code__comment-meta em{color:var(--lc-accent);background:transparent}
+html[data-theme='studio'] .live-code__comment-text,html[data-theme='terminal'] .live-code__comment-text,html[data-theme='aurora'] .live-code__comment-text{color:var(--lc-muted)}
+html[data-theme='studio'] .live-code__avatar--teacher,html[data-theme='terminal'] .live-code__avatar--teacher{background:var(--lc-accent);border-radius:3px}
+html[data-theme='studio'] .live-code__composer,html[data-theme='terminal'] .live-code__composer,html[data-theme='aurora'] .live-code__composer{background:var(--lc-panel)}
+html[data-theme='studio'] .live-code__composer textarea,html[data-theme='terminal'] .live-code__composer textarea,html[data-theme='aurora'] .live-code__composer textarea{color:var(--lc-text);background:var(--lc-bg);border-color:var(--lc-line);border-radius:3px}
+html[data-theme='studio'] .live-code__composer textarea:focus,html[data-theme='terminal'] .live-code__composer textarea:focus,html[data-theme='aurora'] .live-code__composer textarea:focus{border-color:var(--lc-accent);box-shadow:0 0 0 2px color-mix(in srgb,var(--lc-accent) 13%,transparent)}
+html[data-theme='studio'] .live-code__composer-footer button,html[data-theme='terminal'] .live-code__composer-footer button{color:var(--lc-accent);background:transparent;border:1px solid var(--lc-accent);border-radius:3px;box-shadow:none}
