@@ -188,6 +188,12 @@ async def update_members(team_id: int, payload: schemas.TeamMembersUpdate, teach
         )
         if occupied.first():
             raise HTTPException(status_code=409, detail="A student can belong to only one team in this session")
+    removed_member_ids = {member.id for member in team.members} - set(member_ids)
+    if removed_member_ids:
+        for column in team.board.columns:
+            for card in column.cards:
+                if card.assignee_id in removed_member_ids:
+                    card.assignee_id = None
     team.members = members
     await db.commit()
     result = await db.execute(select(models.Team).options(*team_options()).where(models.Team.id == team.id))
