@@ -7,6 +7,7 @@ import './App.css';
 import './themes.css';
 
 const pageTitles: Array<[RegExp, string, string]> = [
+  [/^\/teacher\/jeopardy\/?$/, 'Своя игра', 'Jeopardy game'],
   [/^\/teacher\/teams\/[^/]+\/?$/, 'Доска команды', 'Team board'],
   [/^\/student\/teams\/[^/]+\/?$/, 'Доска команды', 'Team board'],
   [/^\/teacher\/teams\/?$/, 'Командные доски', 'Team boards'],

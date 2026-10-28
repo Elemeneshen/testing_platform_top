@@ -13,6 +13,7 @@ import StudentRegister from './pages/StudentRegister';
 import StudentGroupSelect from './pages/StudentGroupSelect';
 import TeamWorkspace from './pages/TeamWorkspace';
 import TeamBoard from './pages/TeamBoard';
+import TeacherJeopardy from './pages/TeacherJeopardy';
 import { useAuthStore } from './store/authStore';
 import { useTranslation } from './store/languageStore';
 
@@ -100,6 +101,7 @@ const AppRoutes: React.FC = () => {
           />
           <Route path="/teacher/teams" element={<ProtectedRoute expectedRole="teacher"><TeamWorkspace /></ProtectedRoute>} />
           <Route path="/teacher/teams/:teamId" element={<ProtectedRoute expectedRole="teacher"><TeamBoard /></ProtectedRoute>} />
+          <Route path="/teacher/jeopardy" element={<ProtectedRoute expectedRole="teacher"><TeacherJeopardy /></ProtectedRoute>} />
 
           {/* Redirect root to login */}
           <Route path="/" element={<Navigate to="/login" replace />} />

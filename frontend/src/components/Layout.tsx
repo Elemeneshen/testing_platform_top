@@ -34,6 +34,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           {isAuthenticated && role === 'teacher' && <NavLink to="/teacher/dashboard">{t('Рабочее пространство', 'Workspace')}</NavLink>}
           {isAuthenticated && role === 'teacher' && <NavLink to="/teacher/tests/create">{t('Новая задача', 'New task')}</NavLink>}
           {isAuthenticated && <NavLink className="app-nav__teams" to={role === 'teacher' ? '/teacher/teams' : '/student/teams'}>{t('Команды', 'Teams')}</NavLink>}
+          {isAuthenticated && role === 'teacher' && <NavLink className="app-nav__jeopardy" to="/teacher/jeopardy">{t('Своя игра', 'Jeopardy')}</NavLink>}
           {isAuthenticated && <span className={`role-pill role-pill--${role}`}>{role === 'teacher' ? t('Учитель', 'Teacher') : t('Ученик', 'Student')}</span>}
           <LanguagePicker />
           {isAuthenticated && <button type="button" onClick={handleLogout}>{t('Выйти', 'Log out')}</button>}
